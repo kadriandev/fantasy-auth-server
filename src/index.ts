@@ -5,6 +5,10 @@ import { subjects } from "./subjects";
 import { MemoryStorage } from "@openauthjs/openauth/storage/memory";
 
 const app = authorizer({
+  subjects,
+  storage: MemoryStorage({
+    persist: "./persist.json",
+  }),
   providers: {
     yahoo: YahooAdapter({
       clientID: env.YAHOO_CLIENT_ID!,
@@ -12,10 +16,17 @@ const app = authorizer({
       scopes: ["user:email", "user:profile"],
     }),
   },
-  storage: MemoryStorage(),
-  subjects,
   success: async (ctx, value) => {
-    console.log(value);
+    let userid;
+    if (value.provider === "yahoo") {
+      console.log(value.tokenset.access);
+      userid = "yahoouserid";
+    } else {
+      userid = "fallthroughtest";
+    }
+    return ctx.subject("user", {
+      userid,
+    });
   },
 });
 
